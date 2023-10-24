@@ -1,0 +1,42 @@
+version: '3.1'
+services:
+# Если хотите подключить базу данных
+  db:
+## ВНИМАТЕЛЬНО! ВОТ ЭТО НАЗВАНИЕ СЕРВИСА - db - ДОЛЖНО БЫТЬ УКАЗАНО В БОТЕ КАК host В ПОДКЛЮЧЕНИИ К БАЗЕ ИЗ БОТА
+## ТО ЕСТЬ НЕ АЙПИШНИК И НЕ ЛОКАЛХОСТ, А db
+    container_name: aslbot_database
+    image: sameersbn/postgresql:10-2
+    env_file:
+      - ".env"
+    environment:
+      PG_PASSWORD: $DB_PASS
+    restart: always
+    ports:
+      - 5433:5433
+    networks:
+      - botnet
+    volumes:
+      - ./postgres:/var/lib/postgresql
+    expose:
+      - 5432
+  tgbot:
+    container_name: asl_bot
+    build:
+      context: .
+    command: python app.py
+    networks:
+      - botnet
+    restart: always
+    env_file:
+      - ".env"
+    volumes:
+      - .:/src
+    # Бот стартует после запуска базы
+#    depends_on:
+#      - db
+
+# указываются используемые сети
+networks:
+  botnet:
+    # указывается драйвер сети
+    driver: bridge
